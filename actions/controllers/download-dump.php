@@ -19,7 +19,7 @@ while (true) {
             FROM `phones`
             WHERE `area_code` IN ('.implode(',', $list).')
             LIMIT ' . $skipNumber . ',' . DUMP_LINES_LIMIT;
-    new dBug($sql);
+//    new dBug($sql);
     $stmt = query($sql);
     $recordset = $stmt->fetchAll();
     if (empty($recordset)) {
