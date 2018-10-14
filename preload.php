@@ -1,5 +1,20 @@
 <?php
 
+set_time_limit(0);
+error_reporting(E_ALL & ~E_NOTICE);
+
+define("CURRENT_DIR"  , getcwd() . DIRECTORY_SEPARATOR );   //stand-alone classes
+define("CLASSES_DIR"  , CURRENT_DIR . 'classes' .  DIRECTORY_SEPARATOR);   //stand-alone classes
+define("ACTIONS_DIR"  , CURRENT_DIR . 'actions' .  DIRECTORY_SEPARATOR);   //controllers processing sumbitted data and preparing output
+define("TEMP_DIR",  CURRENT_DIR . 'temp' . DIRECTORY_SEPARATOR); //all uploaded files will be copied here so that they won't be deleted between requests
+define("ARCHIVE_DIR",  CURRENT_DIR . 'archive' . DIRECTORY_SEPARATOR);
+
+define('DUMP_LINES_LIMIT', 100000); //dump this many records at a time (to fit into memory_limit)
+
+define("SESSIONS_DIR", CURRENT_DIR . 'temp' . DIRECTORY_SEPARATOR . 'sessions' . DIRECTORY_SEPARATOR); //sessions are stored here
+define('SESSION_TTL', 60 * 60 * 24 * 120); //120 days
+
+
 include "config.php"; //load database settings, folders paths and such stuff
 
 set_include_path( CLASSES_DIR );
@@ -8,18 +23,11 @@ require "functions.php";
 require "dBug.php";
 require "MyCurl.class.php";
 
-if( !is_writable( TEMP_DIR ) )
-{
-  exit ( "Temporary folder must be writable: <code>".TEMP_DIR."</code>" );
-}
+is_writable(TEMP_DIR) || exit ("Temporary folder must be writable: <code>".TEMP_DIR."</code>");
+is_writable(SESSIONS_DIR) || exit ("Temporary folder must be writable: <code>".SESSIONS_DIR."</code>");
 
 if ( -1 == version_compare( PHP_VERSION, '4.1.0' ) ) {
     exit ('Please, you PHP version greater than 4.1.0 - files uploads will not work properly');
-}
-
-register_shutdown_function("fatal_handler");
-function fatal_handler() {
-    error_log('Caught an error: ' . print_r(error_get_last(), 1));
 }
 
 //connect to database
@@ -30,17 +38,14 @@ $options = array(
 ); 
 $db = new PDO($dsn, DB_LOGIN, DB_PASSWORD, $options);
 
-if(empty($db))
-{
-  exit("Cannot connect to database");
-}
+!empty($db) || exit("Cannot connect to database");
 
-if( !ini_get("file_uploads") ) //check whether administrator must tune PHP
-{
-  exit ( "PHP directive [file_uploads] must be turned ON" );
-}
+ini_get("file_uploads") || exit ("PHP directive [file_uploads] must be turned ON");
 
-ini_set('auto_detect_line_endings', 1);
+
+session_save_path(rtrim(SESSIONS_DIR, '/'));
+session_start();
+setcookie(session_name(),session_id(),time() + SESSION_TTL, "/");
 
 $uploadErrors = array(
     UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',

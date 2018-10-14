@@ -24,3 +24,13 @@ if (!empty($_POST['remote_file_url'])) {
     $remoteFileUrl = $newUrl;
     $message = 'The remote file URL has been successfully updated';
 }
+
+if (!empty($_POST['user_submit'])) {
+    $newPassword = trim($_POST['user_password']);
+    if (empty($newPassword)) {
+        $errorMessage = 'The password should not be empty';
+        return;
+    }
+    query('UPDATE `settings` SET `value`=:password WHERE `name`="password"', array(':password' => $newPassword));
+    $message = 'The password has been successfully updated';
+}
