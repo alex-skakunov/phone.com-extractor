@@ -101,3 +101,10 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+INSERT INTO `settings` (`name`, `value`) VALUES 
+('password', '1'),
+('remote file url', '');
+
+ALTER TABLE `import_stats` ADD `way` ENUM('auto','manual') NOT NULL DEFAULT 'auto' AFTER `error_message`;
+ALTER TABLE `import_stats` ADD `filesize` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `way`;

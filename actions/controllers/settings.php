@@ -1,6 +1,13 @@
 <?php
 
 
+$latestImport = query('SELECT *,
+    UNIX_TIMESTAMP(`started_at`) AS "started_at",
+    UNIX_TIMESTAMP(`finished_at`) AS "finished_at"
+    FROM `import_stats` ORDER BY `id` DESC LIMIT 1')->fetch();
+
+$isImportInProgress = !empty($latestImport) && ('in progress' == $latestImport['status']);
+
 $numbersCount = query('SELECT COUNT(*) FROM `phones`')->fetchColumn();
 $remoteFileUrl = query('SELECT `value` FROM `settings` WHERE `name`="remote file url"')->fetchColumn();
 
@@ -22,7 +29,7 @@ if (!empty($_POST['remote_file_url'])) {
     }
     query('UPDATE `settings` SET `value`="' . $newUrl . '" WHERE `name`="remote file url"');
     $remoteFileUrl = $newUrl;
-    $message = 'The remote file URL has been successfully updated';
+    $latestImport = startImport('manual'); // this can take 1-2 minutes   
 }
 
 if (!empty($_POST['user_submit'])) {

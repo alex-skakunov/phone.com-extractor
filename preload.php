@@ -37,6 +37,7 @@ $options = array(
     PDO::MYSQL_ATTR_LOCAL_INFILE => true,
 ); 
 $db = new PDO($dsn, DB_LOGIN, DB_PASSWORD, $options);
+$db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 !empty($db) || exit("Cannot connect to database");
 

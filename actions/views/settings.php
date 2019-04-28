@@ -18,21 +18,79 @@
   <br/>
 <? endif; ?>
 
-<form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show();">
+<form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit').attr('disabled', 'disabled');">
    <table border="0" align="center">
     <tr>
       <td><label for="remote_file_url">Remote file URL:</label></td>
       <td width="10px">&nbsp;</td>
       <td><input type="text" name="remote_file_url" id="remote_file_url" class="edt" value="<?=$remoteFileUrl?>" /></td>
       <td>&nbsp;</td>
-      <td><input id="regular_user_submit" type="Submit" name="remote_file_url_submit" value="Save" class="btn btn-primary" style="padding: 3px 15px" /></td>
+      <td><input id="regular_user_submit" type="Submit" name="remote_file_url_submit" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
     </tr>
     <tr>
       <td colspan="5">&nbsp;</td>
     </tr>
     <tr>
-      <td colspan="5">
-        <p class="text-muted" id="file_availability_container">&nbsp;</p>
+      <td style="text-align: right;">
+        Last import status:
+      </td>
+      <td></td>
+      <td colspan="3" style="text-align: left;">
+        <?=$latestImport['status']?>
+        (<?=$latestImport['way']?> mode)
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">
+        Last fetched at:
+      </td>
+      <td></td>
+      <td colspan="3" style="text-align: left;">
+        <?=!empty($latestImport['finished_at'])
+              ? date('jS \of F Y (h:i:s A)', $latestImport['finished_at'])
+              : '—';?>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">
+        The fetch took:
+      </td>
+      <td></td>
+      <td colspan="3" style="text-align: left;">
+        <?
+          $time = $latestImport['finished_at'] - $latestImport['started_at'];
+          if ($time <= 0) {
+            echo '—';
+          }
+          else if ($time < 60) {
+            echo $time . ' seconds';
+          }
+          else {
+            echo number_format($time / 60, 1) . ' minutes';
+          }
+        ?>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;">
+        Filesize:
+      </td>
+      <td></td>
+      <td colspan="3" style="text-align: left;">
+        <?=!empty($latestImport['filesize'])
+          ? number_format($latestImport['filesize'] / 1024 / 1024, 2) .  ' Mb'
+          : '—'
+          ?>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="text-align: right;">
+        Last erorr:
+      </td>
+      <td></td>
+      <td colspan="3" style="text-align: left;">
+        <?=!empty($latestImport['error_message']) ? $latestImport['error_message'] : '—'?>
       </td>
     </tr>
   </table>
@@ -74,35 +132,6 @@
 </form>
 
 <script type="text/javascript">
-function checkFileAvailability() {
-  var url = $('#remote_file_url').val();
-  if ('' == url) {
-    return;
-  }
-
-  $('#file_availability_container').html('<small>Checking the file availability...</small>');
-  $.getJSON(
-    'index.php?page=check-availability',
-    function(response) {
-      if (!response || 'fail' == response.status) {
-        $('#file_availability_container').html('<small>' + (response.message || 'Erorr!') + '</small>');
-        return;
-      }
-
-      $('#file_availability_container').html(
-        '<small>'
-        + 'File size: '
-        + round(response.content_length / 1024 / 1024, 2)
-        + ' Mb <br/>'
-
-        + 'Updated at: '
-        + response.last_updated
-        + '</small>'
-      );
-
-    }
-  );
-}
 
 function round(number, precision) {
   var shift = function (number, precision, reverseShift) {
@@ -115,7 +144,4 @@ function round(number, precision) {
   return shift(Math.round(shift(number, precision, false)), precision, true);
 }
 
-$( document ).ready(function() {
-  checkFileAvailability();
-});
 </script>

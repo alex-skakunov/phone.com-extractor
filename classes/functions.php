@@ -1,5 +1,113 @@
 <?php
 
+function fail($importId, $errorMessage) {
+  query('UPDATE `import_stats` SET 
+      `finished_at` = NOW(),
+      `status` = "fail",
+      `error_message` = :error_message
+      WHERE id = :import_id',
+      array(
+          ':error_message' => $errorMessage,
+          ':import_id'     =>$importId
+      )
+  );
+  return $errorMessage;
+}
+
+function startImport($wayString = 'auto') {
+  global $db;
+  query('INSERT INTO `import_stats` (`started_at`, `status`, `way`) VALUES (NOW(), "in progress", :way)',
+    array(
+        ':way' => $wayString
+    )
+  );
+  $importId = $db->lastInsertId();
+
+  $remoteFileUrl = query('SELECT `value` FROM `settings` WHERE `name`="remote file url"')->fetchColumn();
+
+  if (empty($remoteFileUrl)) {
+    return fail($importId, 'Remote file URL is not set');
+  }
+
+  // $mc = new MyCurl;
+  // $info = $mc->head($remoteFileUrl);
+  // if (200 != $mc->getResponseCode()) {
+  //     fail($importId, 'It seems file is not found: server returned code' . $mc->getResponseCode());
+  // }
+  // $lastUpdated = date('d.m.Y H:i:s', $info['filetime']);
+
+  $filename = tempnam(TEMP_DIR, 'arc') . '.zip';
+  $result = file_put_contents($filename, fopen($remoteFileUrl, 'r'));
+  if (false === $result) {
+    return fail($importId, 'Could not copy the remote file');
+  }
+
+  $filesize = filesize($filename);
+  $zip = new ZipArchive;
+  if (!$zip->open($filename) === TRUE) {
+    return fail($importId, 'Could not open the zip file');
+  }
+
+  try {
+    $zip->extractTo(TEMP_DIR, array('available_numbers.csv'));
+    $zip->close();
+    unlink($filename); //remove zip
+  }
+  catch(Exception $e) {
+    return fail($importId, $e->getMessage());
+  }
+  $importCSVFile = TEMP_DIR . 'available_numbers.csv';
+
+
+  $fQuickCSV = new Quick_CSV_import($db);
+  $fQuickCSV->make_temporary = true;
+  $fQuickCSV->file_name = $importCSVFile;
+  $fQuickCSV->use_csv_header = true;
+  $fQuickCSV->table_exists = false;
+  $fQuickCSV->truncate_table = false;
+  $fQuickCSV->field_separate_char = ',';
+  $fQuickCSV->encoding = 'utf8';
+  $fQuickCSV->field_enclose_char = '"';
+  $fQuickCSV->field_escape_char = '\\';
+
+  $fQuickCSV->import();
+  unlink($importCSVFile);
+  if (!empty($fQuickCSV->error) )
+  {
+    return fail($importId, $fQuickCSV->error);
+  }
+
+  $rowsCount = $fQuickCSV->rows_count;
+
+  try {
+    query('TRUNCATE TABLE `phones`');
+    query('INSERT IGNORE INTO `phones`
+          SELECT `Available Phone Numbers`, SUBSTR(`Available Phone Numbers`, 2, LOCATE(")", `Available Phone Numbers`, 2)-2) AS "area_code",  `Price`
+          FROM `'.$fQuickCSV->table_name.'`');
+
+    query('UPDATE `import_stats` SET 
+        `finished_at` = NOW(),
+        `status` = "success",
+        `filesize` = :filesize,
+        `error_message` = NULL
+        WHERE id = ' . $importId,
+        array(
+          ':filesize' => $filesize
+        )
+    );
+
+  }
+  catch(Exeption $e) {
+    return fail($importId, $e->getMessage());
+  }
+
+  return query('SELECT *,
+    UNIX_TIMESTAMP(`started_at`) AS "started_at",
+    UNIX_TIMESTAMP(`finished_at`) AS "finished_at"
+    FROM `import_stats` WHERE `id` = ' . $importId)->fetch();
+}
+
+
 //Returns the first non-empty value in the list, or an empty line if there are no non-empty values.
 function coalesce()
 { 
