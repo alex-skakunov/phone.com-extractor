@@ -108,3 +108,22 @@ INSERT INTO `settings` (`name`, `value`) VALUES
 
 ALTER TABLE `import_stats` ADD `way` ENUM('auto','manual') NOT NULL DEFAULT 'auto' AFTER `error_message`;
 ALTER TABLE `import_stats` ADD `filesize` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `way`;
+
+ALTER TABLE `import_stats`
+  ADD `file_id` TINYINT UNSIGNED NOT NULL DEFAULT '1' AFTER `id`,
+  ADD INDEX (`file_id`);
+
+ALTER TABLE `import_stats`
+  ADD `records_number` INT UNSIGNED NOT NULL DEFAULT '0' AFTER `way`,
+  ADD INDEX (`records_number`);
+
+ALTER TABLE `phones`
+  ADD `file_id` TINYINT UNSIGNED NOT NULL DEFAULT '1' AFTER `price`,
+  ADD INDEX (`file_id`);
+
+UPDATE `settings`
+SET `name` = 'remote file1 url'
+WHERE `name` = 'remote file url';
+
+INSERT INTO `settings` (`name`, `value`) VALUES
+('remote file2 url', 'https://s3-us-west-2.amazonaws.com/files.phone.com/scs/available_numbers2.zip');

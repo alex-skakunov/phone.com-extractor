@@ -7,4 +7,5 @@ if( !empty($isInProgress)) {
     exit('Import in progress');
 }
 
-startImport($way);
+startImport($way, 1);
+startImport($way, 2);

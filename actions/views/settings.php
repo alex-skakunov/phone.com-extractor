@@ -18,7 +18,11 @@
   <br/>
 <? endif; ?>
 
-<? for ($i = 1; $i <= 2; $i++) : ?>
+<? 
+  for ($i = 1; $i <= 2; $i++) : 
+    $latestImport = $latestImports[$i];
+    $isImportInProgress = !empty($latestImport) && ('in progress' == $latestImport['status']);
+  ?>
 <fieldset>
   <legend>Remote file <?=$i?></legend>
   <form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit').attr('disabled', 'disabled');">
@@ -26,9 +30,9 @@
       <tr>
         <th style="text-align: right;"><label for="remote_file_url">URL:</label></th>
         <td width="10px">&nbsp;</td>
-        <td><input type="text" name="remote_file_url" id="remote_file_url" class="edt" value="<?=$remoteFileUrl?>" style="width: 40em" /></td>
+        <td><input type="text" name="remote_file_url[<?=$i?>]" id="remote_file_url[<?=$i?>]" class="edt" value="<?=$remoteFileUrls[$i]?>" style="width: 40em" /></td>
         <td>&nbsp;</td>
-        <td><input id="regular_user_submit" type="Submit" name="remote_file_url_submit" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
+        <td><input id="regular_user_submit[<?=$i?>]" type="Submit" name="remote_file_url_submit[<?=$i?>]" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
       </tr>
       <tr>
         <th style="text-align: right;">
@@ -36,8 +40,12 @@
         </th>
         <td></td>
         <td colspan="3" style="text-align: left;">
-          <?=$latestImport['status']?>
-          (<?=$latestImport['way']?> mode)
+          <? if (!empty($latestImport)) : ?>
+            <?=$latestImport['status']?>
+            (<?=$latestImport['way']?> mode)
+          <? else : ?>
+            <span>Never started</span>
+          <? endif; ?>
         </td>
       </tr>
       <tr>
@@ -47,7 +55,7 @@
         <td></td>
         <td colspan="3" style="text-align: left;">
           <?=!empty($latestImport['records_number'])
-                ? number_format($latestImport['finished_at'], 0)
+                ? number_format($latestImport['records_number'], 0)
                 : '—';?>
         </td>
       </tr>

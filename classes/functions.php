@@ -14,16 +14,17 @@ function fail($importId, $errorMessage) {
   return $errorMessage;
 }
 
-function startImport($wayString = 'auto') {
+function startImport($wayString = 'auto', $fileId = 1) {
   global $db;
-  query('INSERT INTO `import_stats` (`started_at`, `status`, `way`) VALUES (NOW(), "in progress", :way)',
+  query('INSERT INTO `import_stats` (`file_id`, `started_at`, `status`, `way`) VALUES (:file_id, NOW(), "in progress", :way)',
     array(
-        ':way' => $wayString
+        ':file_id' => $fileId,
+        ':way'     => $wayString
     )
   );
   $importId = $db->lastInsertId();
 
-  $remoteFileUrl = query('SELECT `value` FROM `settings` WHERE `name`="remote file url"')->fetchColumn();
+  $remoteFileUrl = query('SELECT `value` FROM `settings` WHERE `name`="remote file' . $fileId . ' url"')->fetchColumn();
 
   if (empty($remoteFileUrl)) {
     return fail($importId, 'Remote file URL is not set');
@@ -90,18 +91,20 @@ function startImport($wayString = 'auto') {
   $rowsCount = $fQuickCSV->rows_count;
 
   try {
-    query('TRUNCATE TABLE `phones`');
+    query('DELETE FROM `phones` WHERE `file_id` = ' . $fileId);
     query('INSERT IGNORE INTO `phones`
-          SELECT `Available Phone Numbers`, SUBSTR(`Available Phone Numbers`, 2, LOCATE(")", `Available Phone Numbers`, 2)-2) AS "area_code",  `Price`
+          SELECT `Available Phone Numbers`, SUBSTR(`Available Phone Numbers`, 2, LOCATE(")", `Available Phone Numbers`, 2)-2) AS "area_code", `Price`, ' . $fileId . '
           FROM `'.$fQuickCSV->table_name.'`');
 
     query('UPDATE `import_stats` SET 
         `finished_at` = NOW(),
         `status` = "success",
         `filesize` = :filesize,
+        `records_number` = :records_number,
         `error_message` = NULL
         WHERE id = ' . $importId,
         array(
+          ':records_number' => $rowsCount,
           ':filesize' => $filesize
         )
     );
