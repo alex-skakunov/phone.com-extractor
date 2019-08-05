@@ -36,7 +36,7 @@ function startImport($wayString = 'auto') {
   // }
   // $lastUpdated = date('d.m.Y H:i:s', $info['filetime']);
 
-  $filename = tempnam(TEMP_DIR, 'arc') . '.zip';
+  $filename = tempnam(TEMP_DIR, 'zip');
   $result = file_put_contents($filename, fopen($remoteFileUrl, 'r'));
   if (false === $result) {
     return fail($importId, 'Could not copy the remote file');
@@ -48,15 +48,18 @@ function startImport($wayString = 'auto') {
     return fail($importId, 'Could not open the zip file');
   }
 
+  $csvFilename = '';
   try {
-    $zip->extractTo(TEMP_DIR, array('available_numbers.csv'));
+    $csvFilename = $zip->getNameIndex(0); // 'available_numbers.csv'
+    $zip->extractTo(TEMP_DIR, array($csvFilename));
     $zip->close();
-    unlink($filename); //remove zip
+    unlink($filename);
   }
   catch(Exception $e) {
+    unlink($filename);
     return fail($importId, $e->getMessage());
   }
-  $importCSVFile = TEMP_DIR . 'available_numbers.csv';
+  $importCSVFile = TEMP_DIR . $csvFilename;
 
 
   $fQuickCSV = new Quick_CSV_import($db);
@@ -70,7 +73,14 @@ function startImport($wayString = 'auto') {
   $fQuickCSV->field_enclose_char = '"';
   $fQuickCSV->field_escape_char = '\\';
 
-  $fQuickCSV->import();
+  try {
+    $fQuickCSV->import();
+  }
+  catch(Exception $e) {
+    unlink($importCSVFile);
+    return fail($importId, $e->getMessage());
+  }
+
   unlink($importCSVFile);
   if (!empty($fQuickCSV->error) )
   {
