@@ -43,7 +43,7 @@ if (!empty($_POST['remote_file_url'])) {
     }
     query('UPDATE `settings` SET `value`="' . $newUrl . '" WHERE `name`="remote file'.$fileId.' url"');
     $remoteFileUrls[$fileId] = $newUrl;
-    $latestImport = startImport('manual', $fileId); // this can take 1-2 minutes   
+    $latestImports[$fileId] = startImport('manual', $fileId); // this can take 1-2 minutes   
 }
 
 if (!empty($_POST['user_submit'])) {

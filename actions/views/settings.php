@@ -25,14 +25,14 @@
   ?>
 <fieldset>
   <legend>Remote file <?=$i?></legend>
-  <form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit').attr('disabled', 'disabled');">
+  <form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit1, #regular_user_submit2').attr('disabled', 'disabled');">
     <table border="0" align="center">
       <tr>
         <th style="text-align: right;"><label for="remote_file_url">URL:</label></th>
         <td width="10px">&nbsp;</td>
-        <td><input type="text" name="remote_file_url[<?=$i?>]" id="remote_file_url[<?=$i?>]" class="edt" value="<?=$remoteFileUrls[$i]?>" style="width: 40em" /></td>
+        <td><input type="text" name="remote_file_url[<?=$i?>]" id="remote_file_url<?=$i?>" class="edt" value="<?=$remoteFileUrls[$i]?>" style="width: 40em" /></td>
         <td>&nbsp;</td>
-        <td><input id="regular_user_submit[<?=$i?>]" type="Submit" name="remote_file_url_submit[<?=$i?>]" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
+        <td><input id="regular_user_submit<?=$i?>" type="Submit" name="remote_file_url_submit[<?=$i?>]" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
       </tr>
       <tr>
         <th style="text-align: right;">
