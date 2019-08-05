@@ -99,7 +99,11 @@
               }
             ?>
           </ul>
+          <div style="display: none; text-align: center;" id="loader"  class="navbar-nav mr-auto">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" width="32" height="32" alt="loader" />
+              </div>
         </div>
+
         <div  class="navbar-nav" style="float: right;">
           <a class="nav-link" href="index.php?page=logout"><small>Logout</small></a>
         </div>
@@ -116,9 +120,6 @@
         [template]
       </div>
 
-      <div style="display: none; text-align: center;" id="loader">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif" width="32" height="32" alt="loader" />
-      </div>
     </main><!-- /.container -->
 
 </body>
