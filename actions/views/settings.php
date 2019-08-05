@@ -18,86 +18,98 @@
   <br/>
 <? endif; ?>
 
-<form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit').attr('disabled', 'disabled');">
-   <table border="0" align="center">
-    <tr>
-      <td><label for="remote_file_url">Remote file URL:</label></td>
-      <td width="10px">&nbsp;</td>
-      <td><input type="text" name="remote_file_url" id="remote_file_url" class="edt" value="<?=$remoteFileUrl?>" /></td>
-      <td>&nbsp;</td>
-      <td><input id="regular_user_submit" type="Submit" name="remote_file_url_submit" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
-    </tr>
-    <tr>
-      <td colspan="5">&nbsp;</td>
-    </tr>
-    <tr>
-      <td style="text-align: right;">
-        Last import status:
-      </td>
-      <td></td>
-      <td colspan="3" style="text-align: left;">
-        <?=$latestImport['status']?>
-        (<?=$latestImport['way']?> mode)
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align: right;">
-        Last fetched at:
-      </td>
-      <td></td>
-      <td colspan="3" style="text-align: left;">
-        <?=!empty($latestImport['finished_at'])
-              ? date('jS \of F Y (h:i:s A)', $latestImport['finished_at'])
-              : '—';?>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align: right;">
-        The fetch took:
-      </td>
-      <td></td>
-      <td colspan="3" style="text-align: left;">
-        <?
-          $time = $latestImport['finished_at'] - $latestImport['started_at'];
-          if ($time <= 0) {
-            echo '—';
-          }
-          else if ($time < 60) {
-            echo $time . ' seconds';
-          }
-          else {
-            echo number_format($time / 60, 1) . ' minutes';
-          }
-        ?>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align: right;">
-        Filesize:
-      </td>
-      <td></td>
-      <td colspan="3" style="text-align: left;">
-        <?=!empty($latestImport['filesize'])
-          ? number_format($latestImport['filesize'] / 1024 / 1024, 2) .  ' Mb'
-          : '—'
+<? for ($i = 1; $i <= 2; $i++) : ?>
+<fieldset>
+  <legend>Remote file <?=$i?></legend>
+  <form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show(); $('#regular_user_submit').attr('disabled', 'disabled');">
+    <table border="0" align="center">
+      <tr>
+        <th style="text-align: right;"><label for="remote_file_url">URL:</label></th>
+        <td width="10px">&nbsp;</td>
+        <td><input type="text" name="remote_file_url" id="remote_file_url" class="edt" value="<?=$remoteFileUrl?>" style="width: 40em" /></td>
+        <td>&nbsp;</td>
+        <td><input id="regular_user_submit" type="Submit" name="remote_file_url_submit" value="Fetch" class="btn btn-primary" style="padding: 3px 15px" <?=$isImportInProgress ? 'disabled="disabled"' : ''?> /></td>
+      </tr>
+      <tr>
+        <th style="text-align: right;">
+          Last import status:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?=$latestImport['status']?>
+          (<?=$latestImport['way']?> mode)
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align: right;">
+          Records number:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?=!empty($latestImport['records_number'])
+                ? number_format($latestImport['finished_at'], 0)
+                : '—';?>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align: right;">
+          Last fetched at:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?=!empty($latestImport['finished_at'])
+                ? date('jS \of F Y (h:i:s A)', $latestImport['finished_at'])
+                : '—';?>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align: right;">
+          The fetch took:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?
+            $time = $latestImport['finished_at'] - $latestImport['started_at'];
+            if ($time <= 0) {
+              echo '—';
+            }
+            else if ($time < 60) {
+              echo $time . ' seconds';
+            }
+            else {
+              echo number_format($time / 60, 1) . ' minutes';
+            }
           ?>
-      </td>
-    </tr>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align: right;">
+          Filesize:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?=!empty($latestImport['filesize'])
+            ? number_format($latestImport['filesize'] / 1024 / 1024, 2) .  ' Mb'
+            : '—'
+            ?>
+        </td>
+      </tr>
 
-    <tr>
-      <td style="text-align: right;">
-        Last erorr:
-      </td>
-      <td></td>
-      <td colspan="3" style="text-align: left;">
-        <?=!empty($latestImport['error_message']) ? $latestImport['error_message'] : '—'?>
-      </td>
-    </tr>
-  </table>
-</form>
+      <tr>
+        <th style="text-align: right;">
+          Last erorr:
+        </th>
+        <td></td>
+        <td colspan="3" style="text-align: left;">
+          <?=!empty($latestImport['error_message']) ? $latestImport['error_message'] : '—'?>
+        </td>
+      </tr>
+    </table>
+  </form>
+</fieldset>
+<? endfor; ?>
 
-<hr/>
-<form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show();">
+<form method="post" enctype="multipart/form-data" onsubmit="$('#loader').show();" style="margin-top: 30px">
    <table border="0" align="center">
     <tr>
       <td><label for="user_password">Change the password:</label></td>

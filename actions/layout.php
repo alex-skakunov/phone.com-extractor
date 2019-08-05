@@ -64,6 +64,18 @@
     td {
       text-align: center;
     }
+
+    fieldset {
+      border: solid 1px gray;
+      text-align: left;
+      padding: 5px 20px;
+    }
+
+    fieldset legend {
+      padding-left: 6px;
+      padding-right: 6px;
+      width: auto;
+    }
     
   </style>
   <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
