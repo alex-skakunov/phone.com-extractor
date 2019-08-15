@@ -31,6 +31,6 @@ if (empty($cleanNumbersList)) {
 
 $sql = 'SELECT COUNT(`number`)
       FROM `phones`
-      WHERE `area_code` IN ('.implode(',', $cleanNumbersList).')';
+      WHERE `areacode` IN ('.implode(',', $cleanNumbersList).')';
 
 $foundTotal = (int)query($sql)->fetchColumn();

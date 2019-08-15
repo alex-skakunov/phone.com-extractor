@@ -15,9 +15,9 @@ $skipNumber = 0;
 $count = 1;
 $filesList = array();
 while (true) {
-    $sql = 'SELECT `number`, `price`
+    $sql = 'SELECT `areacode`, `number`, `price`
             FROM `phones`
-            WHERE `area_code` IN ('.implode(',', $list).')
+            WHERE `areacode` IN ('.implode(',', $list).')
             LIMIT ' . $skipNumber . ',' . DUMP_LINES_LIMIT;
 //    new dBug($sql);
     $stmt = query($sql);
@@ -27,7 +27,12 @@ while (true) {
     }
     $lines = array();
     foreach ($recordset as $row) {
-        $lines[] = $row['number'] . ',' . $row['price'];
+        $lines[] = sprintf('(%s) %s-%s,%s',
+                $row['areacode'],
+                substr($row['number'], 0, 3),
+                substr($row['number'], 3),
+                $row['price']
+            );
     }
     unset($recordset);
     $filename = 'dump' . $count++ . '.csv';

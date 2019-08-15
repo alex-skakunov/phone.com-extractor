@@ -86,12 +86,17 @@ class Quick_CSV_import
               LINES
                   TERMINATED BY "'. $this->line_separate_char .'" '
            . ($this->use_csv_header ? ' IGNORE 1 LINES' : '');
+
+    $sql .= ' '
+      . ($this->fields_list
+        ? ('(' . implode(',', $this->fields_list) . ')')
+        : '');
     
     if (!empty($this->parameters)) {
       $sql .= ' SET ';
       $compiledParametersList = array();
       foreach ($this->parameters as $parameterName => $parameterValue) {
-        $compiledParametersList[] = $parameterName . '="' . $parameterValue . '"';
+        $compiledParametersList[] = $parameterName . '=' . $parameterValue;
       }
       $sql .= implode(', ', $compiledParametersList);
     }

@@ -76,7 +76,11 @@
         </th>
         <td></td>
         <td colspan="3" style="text-align: left;">
+        <? if(!empty($latestImport['started_at'])) : ?>
           <?=format_time(time_ago($latestImport['started_at'], $latestImport['finished_at']));?>
+        <? else: ?>
+          —
+        <? endif; ?>
         </td>
       </tr>
       <tr>
@@ -92,15 +96,17 @@
         </td>
       </tr>
 
+      <? if (!empty($latestImport['error_message'])): ?>
       <tr>
         <th style="text-align: right;">
-          Last erorr:
+          Status:
         </th>
         <td></td>
         <td colspan="3" style="text-align: left;">
-          <?=!empty($latestImport['error_message']) ? $latestImport['error_message'] : '—'?>
+          <?=$latestImport['error_message']?>
         </td>
       </tr>
+     <? endif; ?>
     </table>
   </form>
 </fieldset>

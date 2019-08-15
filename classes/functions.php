@@ -14,6 +14,18 @@ function fail($importId, $errorMessage) {
   return $errorMessage;
 }
 
+function log_import_step($importId, $message) {
+  query('UPDATE `import_stats` SET 
+      `error_message` = :message
+      WHERE id = :import_id',
+      array(
+          ':message'   => $message,
+          ':import_id' =>$importId
+      )
+  );
+  return $message;
+}
+
 function startImport($wayString = 'auto', $fileId = 1) {
   global $db;
   query('INSERT INTO `import_stats` (`file_id`, `started_at`, `status`, `way`) VALUES (:file_id, NOW(), "in progress", :way)',
@@ -37,6 +49,7 @@ function startImport($wayString = 'auto', $fileId = 1) {
   // }
   // $lastUpdated = date('d.m.Y H:i:s', $info['filetime']);
 
+  log_import_step($importId, 'Downloading the remote file');
   $filename = tempnam(TEMP_DIR, 'zip');
   $result = file_put_contents($filename, fopen($remoteFileUrl, 'r'));
   if (false === $result) {
@@ -52,6 +65,7 @@ function startImport($wayString = 'auto', $fileId = 1) {
   $csvFilename = '';
   try {
     $csvFilename = $zip->getNameIndex(0); // 'available_numbers.csv'
+    log_import_step($importId, 'Unzipping the file (' . $csvFilename . ')');
     $zip->extractTo(TEMP_DIR, array($csvFilename));
     $zip->close();
     unlink($filename);
@@ -62,17 +76,32 @@ function startImport($wayString = 'auto', $fileId = 1) {
   }
   $importCSVFile = TEMP_DIR . $csvFilename;
 
+  $tableName = 'import_' . time() . rand(1,100);
+  
+  query('CREATE TEMPORARY TABLE `' . $tableName . '`(
+    `areacode` SMALLINT(3) UNSIGNED NOT NULL,
+    `number` INT(7) UNSIGNED NOT NULL,
+    `price` decimal(9,2) UNSIGNED NOT NULL  
+  )');
 
+  log_import_step($importId, 'Loading the file in the database');
   $fQuickCSV = new Quick_CSV_import($db);
-  $fQuickCSV->make_temporary = true;
+  $fQuickCSV->table_name = $tableName;
   $fQuickCSV->file_name = $importCSVFile;
+  $fQuickCSV->make_temporary = false;
   $fQuickCSV->use_csv_header = true;
-  $fQuickCSV->table_exists = false;
+  $fQuickCSV->table_exists = true;
   $fQuickCSV->truncate_table = false;
   $fQuickCSV->field_separate_char = ',';
   $fQuickCSV->encoding = 'utf8';
   $fQuickCSV->field_enclose_char = '"';
   $fQuickCSV->field_escape_char = '\\';
+  $fQuickCSV->fields_list = array('@fullnumber', '@price');
+  $fQuickCSV->parameters = array(
+    'areacode' => 'SUBSTR(@fullnumber, 2, 3)',
+    'number'   => 'REPLACE(REPLACE(SUBSTR(@fullnumber, 6), " ", ""), "-", "")',
+    'price'    => 'IF(@price <> "None", @price, 0)'
+  );
 
   try {
     $fQuickCSV->import();
@@ -81,6 +110,8 @@ function startImport($wayString = 'auto', $fileId = 1) {
     unlink($importCSVFile);
     return fail($importId, $e->getMessage());
   }
+
+  query('ALTER TABLE ' . $tableName . ' ADD PRIMARY KEY (`areacode`,`number`)');
 
   unlink($importCSVFile);
   if (!empty($fQuickCSV->error) )
@@ -91,10 +122,18 @@ function startImport($wayString = 'auto', $fileId = 1) {
   $rowsCount = $fQuickCSV->rows_count;
 
   try {
-    query('DELETE FROM `phones` WHERE `file_id` = ' . $fileId);
-    query('INSERT IGNORE INTO `phones`
-          SELECT `Available Phone Numbers`, SUBSTR(`Available Phone Numbers`, 2, LOCATE(")", `Available Phone Numbers`, 2)-2) AS "area_code", `Price`, ' . $fileId . '
-          FROM `'.$fQuickCSV->table_name.'`');
+    log_import_step($importId, 'Deleting the obsolete numbers');
+    query('DELETE FROM p
+           USING `phones` p
+           LEFT JOIN `' . $tableName . '` n USING (`areacode`, `number`)
+           WHERE n.`number` IS NULL
+             AND p.file_id = ' . $fileId);
+
+    log_import_step($importId, 'Adding the new phones');
+    query('INSERT INTO `phones`
+          SELECT `areacode`, `number`, ' . $fileId . ', `price`
+          FROM `'.$fQuickCSV->table_name.'`
+          ON DUPLICATE KEY UPDATE `price` = VALUES(`price`)');
 
     query('UPDATE `import_stats` SET 
         `finished_at` = NOW(),
@@ -110,7 +149,7 @@ function startImport($wayString = 'auto', $fileId = 1) {
     );
 
   }
-  catch(Exeption $e) {
+  catch(Exception $e) {
     return fail($importId, $e->getMessage());
   }
 
