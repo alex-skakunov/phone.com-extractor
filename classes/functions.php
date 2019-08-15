@@ -251,6 +251,23 @@ function startsWith( $str, $token ) {
     return !strncasecmp($_str, $token, $tokenLen );
 }
 
+function time_ago($startTimestamp, $endTimestamp=null) {
+  if (empty($endTimestamp)) {
+    $endTimestamp = time();
+  }
+  return $endTimestamp - $startTimestamp;
+}
+
+function format_time($timestamp, $precision=1) {
+  if ($timestamp <= 0) {
+    return '—';
+  }
+  if ($timestamp < 60) {
+    return $timestamp . ' seconds';
+  }
+  return number_format($timestamp / 60, $precision) . ' minutes';
+}
+
 function query($sql, $replacements=null) {
     global $db;
     $stmt = $db->prepare($sql);

@@ -76,18 +76,7 @@
         </th>
         <td></td>
         <td colspan="3" style="text-align: left;">
-          <?
-            $time = $latestImport['finished_at'] - $latestImport['started_at'];
-            if ($time <= 0) {
-              echo '—';
-            }
-            else if ($time < 60) {
-              echo $time . ' seconds';
-            }
-            else {
-              echo number_format($time / 60, 1) . ' minutes';
-            }
-          ?>
+          <?=format_time(time_ago($latestImport['started_at'], $latestImport['finished_at']));?>
         </td>
       </tr>
       <tr>
