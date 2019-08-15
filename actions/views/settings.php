@@ -131,7 +131,9 @@
     </tr>
     <tr>
       <td>
-        <p class="text-muted"><small>Records available: <?=number_format($numbersCount)?></small></p>
+        <p class="text-muted"><small>Records available: 
+          <span id="records_total">Calculating...</span>
+        </small></p>
       </td>
     </tr>
     <tr>
@@ -142,6 +144,15 @@
 
 <script type="text/javascript">
 
+$.ajax("index.php?page=calculate-total" )
+  .done(function(msg) {
+    console.log(msg)
+    $('#records_total').html(msg.total)
+  })
+  .fail(function() {
+    $('#records_total').html('Error while fetching the total')
+  });
+  
 function round(number, precision) {
   var shift = function (number, precision, reverseShift) {
     if (reverseShift) {

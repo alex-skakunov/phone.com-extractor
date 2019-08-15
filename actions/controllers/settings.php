@@ -1,9 +1,6 @@
 <?php
-
-
 $latestImports = array();
 
-$numbersCount = query('SELECT COUNT(*) FROM `phones`')->fetchColumn();
 $remoteFileUrls = array();
 for ($i = 1; $i <= 2; $i++) {
     $remoteFileUrls[$i] = query('SELECT `value` FROM `settings` WHERE `name`="remote file'.$i.' url"')->fetchColumn();
@@ -24,7 +21,6 @@ if (empty($_POST)) {
     
 if (!empty($_POST['erase_database'])) {
     query('TRUNCATE TABLE phones');
-    $numbersCount = 0;
     $message = 'Database has been successfully erased';
 }
 
