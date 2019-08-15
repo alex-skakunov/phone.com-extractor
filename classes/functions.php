@@ -307,6 +307,19 @@ function format_time($timestamp, $precision=1) {
   return number_format($timestamp / 60, $precision) . ' minutes';
 }
 
+function format_datetime($datetime) {
+  $today = date('d.m.Y');
+  $yesterday = date('d.m.Y', strtotime('yesterday'));
+  $givenDay = date('d.m.Y', $datetime);
+  if ($givenDay == $today) {
+    return 'today at ' . date('H:m', $datetime);
+  }
+  if ($givenDay == $yesterday) {
+    return 'yesterday at ' . date('H:m', $datetime);
+  }
+  return date('jS \of F Y (h:i:s A)', $datetime);
+}
+
 function query($sql, $replacements=null) {
     global $db;
     $stmt = $db->prepare($sql);

@@ -66,7 +66,7 @@
         <td></td>
         <td colspan="3" style="text-align: left;">
           <?=!empty($latestImport['finished_at'])
-                ? date('jS \of F Y (h:i:s A)', $latestImport['finished_at'])
+                ? format_datetime($latestImport['finished_at'])
                 : '—';?>
         </td>
       </tr>
