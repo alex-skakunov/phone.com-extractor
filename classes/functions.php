@@ -312,10 +312,10 @@ function format_datetime($datetime) {
   $yesterday = date('d.m.Y', strtotime('yesterday'));
   $givenDay = date('d.m.Y', $datetime);
   if ($givenDay == $today) {
-    return 'today at ' . date('H:m', $datetime);
+    return 'today at ' . date('H:i', $datetime);
   }
   if ($givenDay == $yesterday) {
-    return 'yesterday at ' . date('H:m', $datetime);
+    return 'yesterday at ' . date('H:i', $datetime);
   }
   return date('jS \of F Y (h:i:s A)', $datetime);
 }

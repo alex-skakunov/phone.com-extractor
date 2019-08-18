@@ -91,7 +91,7 @@
           <ul class="navbar-nav mr-auto">
 
             <?
-              $itemsList = array('search', 'settings');
+              $itemsList = array('search', 'files', 'settings');
               foreach ($itemsList as $item) {
                 echo '<li class="nav-item ', (CURRENT_ACTION == $item ? 'active' : ''), '">';
                 echo '<a  class="nav-link" href="index.php?page=' . $item . '">' . ucfirst($item) . '</a>';
@@ -109,12 +109,22 @@
         </div>
       <? endif; ?>
     </nav>
-    <main role="main" class="container">
-        <? if( !empty($error) ) : ?>
-            <div class="alert alert-danger" role="alert">
-              <?=$error?>
-            </div>          
+    <main role="main" class="container mw-100">
+      <div style="text-align: center;">
+        <? if (!empty($errorMessage)): ?>
+          <div class="alert alert-danger" role="alert">
+            <?=$errorMessage?>
+          </div>
+          <br/>
         <? endif; ?>
+
+        <? if (!empty($message)): ?>
+          <div class="alert alert-info" role="alert">
+            <?=$message?>
+          </div>
+          <br/>
+        <? endif; ?>
+      </div>
 
       <div class="starter-template">
         [template]
