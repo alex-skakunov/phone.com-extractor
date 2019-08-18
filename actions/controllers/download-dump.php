@@ -15,7 +15,7 @@ $skipNumber = 0;
 $count = 1;
 $filesList = array();
 while (true) {
-    $sql = 'SELECT `areacode`, `number`, `price`
+    $sql = 'SELECT `areacode`, `number`, IFNULL(`price`, "X") as price
             FROM `phones`
             WHERE `areacode` IN ('.implode(',', $list).')
             LIMIT ' . $skipNumber . ',' . DUMP_LINES_LIMIT;

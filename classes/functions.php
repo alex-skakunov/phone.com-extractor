@@ -81,7 +81,7 @@ function startImport($wayString = 'auto', $fileId = 1) {
   query('CREATE TEMPORARY TABLE `' . $tableName . '`(
     `areacode` SMALLINT(3) UNSIGNED NOT NULL,
     `number` INT(7) UNSIGNED NOT NULL,
-    `price` decimal(9,2) UNSIGNED NOT NULL  
+    `price` decimal(9,2) UNSIGNED DEFAULT NULL
   )');
 
   log_import_step($importId, 'Loading the file in the database');
@@ -100,7 +100,7 @@ function startImport($wayString = 'auto', $fileId = 1) {
   $fQuickCSV->parameters = array(
     'areacode' => 'SUBSTR(@fullnumber, 2, 3)',
     'number'   => 'REPLACE(REPLACE(SUBSTR(@fullnumber, 6), " ", ""), "-", "")',
-    'price'    => 'IF(@price <> "None", @price, 0)'
+    'price'    => 'IF(@price <> "None", @price, NULL)'
   );
 
   try {
